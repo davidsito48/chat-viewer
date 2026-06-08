@@ -23,7 +23,7 @@ const fontDecrease = document.getElementById('font-decrease');
 const fontIncrease = document.getElementById('font-increase');
 const chatLog = document.getElementById('chat-log');
 
-// 1. View Mode Switcher
+// View Mode Switcher
 viewSelect.addEventListener('change', (e) => {
     if (e.target.value === 'desktop') {
         document.body.classList.add('desktop-mode');
@@ -37,7 +37,7 @@ viewSelect.addEventListener('change', (e) => {
     }
 });
 
-// 2. Theme Switcher
+// Theme Switcher
 themeSelect.addEventListener('change', (e) => {
     if (e.target.value === 'dark') {
         document.body.classList.add('dark-theme');
@@ -46,7 +46,7 @@ themeSelect.addEventListener('change', (e) => {
     }
 });
 
-// 3. Font Scaling
+// Font Scaling
 function updateFontSize(amount) {
     currentFontSize = Math.max(12, Math.min(30, currentFontSize + amount));
     document.documentElement.style.setProperty('--base-font-size', `${currentFontSize}px`);
@@ -59,7 +59,7 @@ function updateFontSize(amount) {
 fontIncrease.addEventListener('click', () => updateFontSize(1));
 fontDecrease.addEventListener('click', () => updateFontSize(-1));
 
-// 4. Search Parsing Triggers
+// Search Parsing Triggers
 searchInput.addEventListener('input', () => {
     renderChat(); 
     initializeMatches(); 
@@ -75,7 +75,7 @@ searchInput.addEventListener('keydown', (e) => {
     }
 });
 
-// 5. Handle file upload stream
+// Handle file upload stream
 fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -92,12 +92,26 @@ fileInput.addEventListener('change', (e) => {
     reader.readAsText(file);
 });
 
-// 6. Format Date string helper
-function formatReadableDate(rawDate) {
+/**
+ * Format Date string helper
+ * Handles:
+ * - Format 1 (US-ish): MM/DD/YY or MM/DD/YYYY
+ * - Format 2 (ES-ish): DD/MM/YY
+ */
+function formatReadableDate(rawDate, isSpanishFormat = false) {
+    // Standardize separators just in case
     const parts = rawDate.split('/');
     if (parts.length !== 3) return rawDate;
 
-    let [monthStr, dayStr, yearStr] = parts;
+    let dayStr, monthStr, yearStr;
+
+    if (isSpanishFormat) {
+        // Format 2: DD/MM/YY
+        [dayStr, monthStr, yearStr] = parts;
+    } else {
+        // Format 1: MM/DD/YY
+        [monthStr, dayStr, yearStr] = parts;
+    }
     
     const monthIndex = parseInt(monthStr, 10) - 1;
     const day = parseInt(dayStr, 10);
@@ -114,17 +128,31 @@ function formatReadableDate(rawDate) {
     return rawDate;
 }
 
-// 7. Parse raw log file
+// Parse raw log file supporting multiple formats
 function parseChatLog(text) {
     parsedMessages = [];
     uniqueUsers.clear();
 
-    const lineRegex = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2})\s-\s([^:]+):\s(.*)$/;
+    // Regex 1: Original Format -> "5/5/23, 10:12 - user1: message"
+    const regexOriginal = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s(\d{1,2}:\d{2})\s-\s([^:]+):\s(.*)$/;
+
+    // Regex 2: Spanish 12h Format -> "03/04/26 9:44 a. m. - David: message"
+    // Notes: Handles potential spaces/non-breaking spaces before 'a. m.' or 'p. m.'
+    const regexSpanish12h = /^(\d{1,2}\/\d{1,2}\/\d{2,4})\s(\d{1,2}:\d{2}\s*(?:a\.\s*m\.|p\.\s*m\.))\s-\s([^:]+):\s(.*)$/i;
+
     const lines = text.split(/\r?\n/);
     let currentMessage = null;
 
     lines.forEach(line => {
-        const match = line.match(lineRegex);
+        // Try original format match first
+        let match = line.match(regexOriginal);
+        let isSpanish = false;
+
+        // If no match, check the Spanish 12-hour layout pattern
+        if (!match) {
+            match = line.match(regexSpanish12h);
+            isSpanish = true;
+        }
 
         if (match) {
             if (currentMessage) parsedMessages.push(currentMessage);
@@ -132,13 +160,17 @@ function parseChatLog(text) {
             const [_, date, time, user, messageBody] = match;
             uniqueUsers.add(user.trim());
 
+            // Normalize time typography (remove excess spaces inside a. m. / p. m. for UI display consistency)
+            let cleanedTime = time.trim().replace(/\s+/g, ' ');
+
             currentMessage = {
-                date: formatReadableDate(date.trim()), 
-                time,
+                date: formatReadableDate(date.trim(), isSpanish), 
+                time: cleanedTime,
                 user: user.trim(),
                 text: messageBody
             };
         } else if (currentMessage) {
+            // Continuation line for multi-line messages
             currentMessage.text += '\n' + line;
         }
     });
@@ -146,7 +178,7 @@ function parseChatLog(text) {
     if (currentMessage) parsedMessages.push(currentMessage);
 }
 
-// 8. Dynamic Sender Assignments
+// Dynamic Sender Assignments
 function updateSenderDropdown() {
     senderSelect.innerHTML = '';
     if (uniqueUsers.size === 0) {
@@ -185,7 +217,7 @@ function highlightAndEscape(text, searchTerm) {
     return { html, hasMatch };
 }
 
-// 9. Primary DOM Injection Renderer
+// Primary DOM Injection Renderer
 function renderChat() {
     chatLog.innerHTML = '';
     const selectedSender = senderSelect.value;
@@ -219,7 +251,7 @@ function renderChat() {
     }
 }
 
-// 10. Selection Query Indexing
+// Selection Query Indexing
 function initializeMatches() {
     const searchTerm = searchInput.value.trim();
     if (!searchTerm) return;
