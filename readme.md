@@ -12,7 +12,7 @@ A lightweight, zero-dependency local web application to parse plain text chat lo
 
 ## 🚀 Live Demo (GitHub Pages)
 You can use the application directly without installing anything by visiting the live deployment here:
-👉 **[https://<your-github-username>.github.io/<your-repo-name>/](https://pages.github.com/)**
+👉 **https://davidsito48.github.io/chat-viewer/**
 
 ---
 
