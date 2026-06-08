@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Chat Log Rebuilder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="controls">
+        <div class="control-group">
+            <label for="file-input">Select Chat Log (.txt)</label>
+            <input type="file" id="file-input" accept=".txt">
+        </div>
+        
+        <div class="control-group">
+            <label for="sender-select">Assign Sender</label>
+            <select id="sender-select" disabled>
+                <option value="">Upload a file first...</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="view-select">View Mode</label>
+            <select id="view-select">
+                <option value="mobile">Mobile Layout</option>
+                <option value="desktop">Desktop Layout</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="theme-select">Theme</label>
+            <select id="theme-select">
+                <option value="light">Light Mode</option>
+                <option value="dark">Dark Mode</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Font Size</label>
+            <div class="font-controls">
+                <button class="btn" id="font-decrease">−</button>
+                <button class="btn" id="font-increase">+</button>
+            </div>
+        </div>
+
+        <div class="control-group search-group">
+            <label for="search-input">Find In Chat</label>
+            <div class="search-wrapper">
+                <input type="text" id="search-input" placeholder="Find text..." disabled>
+                <span class="match-counter" id="match-counter">0/0</span>
+                <div class="search-controls">
+                    <button class="btn" id="search-prev" disabled>▲</button>
+                    <button class="btn" id="search-next" disabled>▼</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-container">
+        <div id="chat-log">
+            </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
